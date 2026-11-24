@@ -56,3 +56,43 @@ class AuctionEvent(models.Model):
 
     def __str__(self):
         return self.title
+    #added auctionlot 
+class AuctionLot(models.Model):
+
+    auction_event = models.ForeignKey(
+        AuctionEvent,
+        on_delete=models.CASCADE,
+        related_name='lots'
+    )
+
+    title = models.CharField(max_length=200)
+
+    description = models.TextField()
+
+    quantity = models.PositiveIntegerField(default=1)
+
+    starting_price = models.DecimalField(
+        max_digits=12,
+        decimal_places=2
+    )
+
+    minimum_increment = models.DecimalField(
+        max_digits=12,
+        decimal_places=2
+    )
+
+    reserve_price = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        null=True,
+        blank=True
+    )
+
+    is_published = models.BooleanField(default=False)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.title
