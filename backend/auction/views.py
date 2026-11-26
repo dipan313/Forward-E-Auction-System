@@ -219,3 +219,151 @@ def approve_auction_event(request, event_id):
     serializer = AuctionEventSerializer(event)
 
     return Response(serializer.data)
+
+# 6. LIST AUCTION LOTS
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def list_auction_lot(request):
+
+    update_auction_status()
+    if request.user.is_staff:
+        lots = AuctionLot.objects.all()
+
+    elif request.user.role == 'SELLER':
+        lots = AuctionLot.objects.filter(
+            auction_event__seller=request.user
+        )
+
+    else:
+        lots = AuctionLot.objects.filter(
+            auction_event__is_approved=True,
+            is_published=True
+        )
+    serializer = AuctionLotSerializer(lots, many=True)
+
+    data = serializer.data
+
+    if request.user.role == 'BUYER' and not request.user.is_staff:
+
+        for lot in data:
+            lot.pop('reserve_price', None)
+
+    return Response(data)
+
+
+# 7. PLACE BID
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def place_bid(request):
+    update_auction_status()
+    if request.user.role != 'BUYER' or request.user.is_staff:
+        return Response(
+            {"error": "Only buyers can place bids."},
+            status=status.HTTP_403_FORBIDDEN
+        )
+
+    serializer = BidSerializer(data=request.data)
+
+    if serializer.is_valid():
+
+        lot = serializer.validated_data['auction_lot']
+        bid_amount = serializer.validated_data['bid_amount']
+
+        # Lock the lot while checking and saving the bid
+        with transaction.atomic():
+
+            lot = AuctionLot.objects.select_for_update().get(
+                id=lot.id
+            )
+
+            event = lot.auction_event
+            current_time = timezone.now()
+
+            if event.seller == request.user:
+                return Response(
+                    {"error": "You cannot bid on your own auction."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            if not event.is_approved or not lot.is_published:
+                return Response(
+                    {"error": "This lot is not available for bidding."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            if current_time < event.start_time:
+                return Response(
+                    {"error": "Auction has not started yet."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            if current_time >= event.end_time:
+                return Response(
+                    {"error": "Auction has ended."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            if event.status not in ['LIVE', 'SCHEDULED']:
+                return Response(
+                    {"error": "Auction is not active."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            highest_bid = Bid.objects.filter(
+                auction_lot=lot
+            ).order_by('-bid_amount').first()
+
+            if highest_bid is None:
+                minimum_bid = lot.starting_price
+            else:
+                minimum_bid = (
+                    highest_bid.bid_amount + lot.minimum_increment
+                )
+
+            if bid_amount < minimum_bid:
+                return Response(
+                    {
+                        "error": "Bid amount is too low.",
+                        "minimum_bid": str(minimum_bid)
+                    },
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            bid = serializer.save(bidder=request.user)
+
+        return Response(
+            BidSerializer(bid).data,
+            status=status.HTTP_201_CREATED
+        )
+
+    return Response(
+        serializer.errors,
+        status=status.HTTP_400_BAD_REQUEST
+    )
+
+
+# 8. GET HIGHEST BID
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def highest_bid(request):
+
+    lot_id = request.query_params.get('lot_id')
+
+    if not lot_id:
+        return Response(
+            {"error": "Please provide lot_id."},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    highest = Bid.objects.filter(
+        auction_lot_id=lot_id
+    ).order_by('-bid_amount').first()
+
+    if highest is None:
+        return Response(
+            {"message": "No bids placed yet."}
+        )
+
+    serializer = BidSerializer(highest)
+
+    return Response(serializer.data)
