@@ -1,0 +1,10 @@
+import React from "react";
+
+export default function Register() {
+  return (
+    <div>
+      <h1>Registration Page</h1>
+      <p>Register as a Seller or Buyer</p>
+    </div>
+  );
+}
