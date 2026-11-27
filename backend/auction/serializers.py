@@ -24,6 +24,7 @@ class AuctionEventSerializer(serializers.ModelSerializer):
     class Meta:
         model = AuctionEvent
         fields = '__all__'
+        read_only_fields =["seller"]
 
 
 # AUCTION LOT SERIALIZER
@@ -40,6 +41,7 @@ class BidSerializer(serializers.ModelSerializer):
     class Meta:
         model = Bid
         fields = '__all__'
+        read_only_fields = ['bidder']
 
 
 # AUCTION RESULT SERIALIZER
