@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from "react";
+
 import {
   Paper,
   Typography,
@@ -22,30 +23,32 @@ export default function Auctions() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
 
-  const fetchAuctions = () => {
-    axios
-      .get("http://127.0.0.1:8000/auctionevent/", {
-        headers: {
-          Authorization: "Bearer " + localStorage.getItem("access")
-        }
-      })
-      .then((response) => {
-        setAuctions(response.data);
-        setLoading(false);
-      })
-      .catch((error) => {
-        setError("Unable to fetch auctions");
-        setLoading(false);
-      });
-  };
-
   useEffect(() => {
+    const fetchAuctions = async () => {
+      try {
+        const response = await axios.get(
+          "http://127.0.0.1:8000/events/",
+          {
+            headers: {
+              Authorization: "Bearer " + localStorage.getItem("access")
+            }
+          }
+        );
+
+        setAuctions(response.data);
+      } catch (error) {
+        setError("Unable to fetch auctions");
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchAuctions();
   }, []);
 
   return (
     <div>
-      <Typography gutterBottom variant="h4">
+      <Typography variant="h4" gutterBottom>
         Available Auctions
       </Typography>
 
@@ -86,9 +89,7 @@ export default function Auctions() {
               auctions.map((auction) => (
                 <TableRow key={auction.id}>
                   <TableCell>{auction.id}</TableCell>
-
                   <TableCell>{auction.title}</TableCell>
-
                   <TableCell>{auction.description}</TableCell>
 
                   <TableCell>
@@ -106,7 +107,7 @@ export default function Auctions() {
                       variant="contained"
                       onClick={() =>
                         router.push(
-                          "/buyer/auctionsdetails?id=" + auction.id
+                          "/buyer/auctiondetails?id=" + auction.id
                         )
                       }
                     >

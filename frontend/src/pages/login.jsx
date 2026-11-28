@@ -1,68 +1,129 @@
 
-import React from "react";
+import React, { useState } from "react";
+
 import {
   Card,
   CardContent,
-  Typography,
   CardActions,
+  Typography,
+  TextField,
+  FormControl,
+  FormControlLabel,
+  FormLabel,
+  RadioGroup,
+  Radio,
   Button,
-  Grid
+  Box
 } from "@mui/material";
 
+import axios from "axios";
 import { useRouter } from "next/router";
 
-export default function Buyer() {
+export default function Login() {
   const router = useRouter();
 
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [role, setRole] = useState("BUYER");
+
+  const handleLogin = async () => {
+    try {
+      const response = await axios.post(
+        "http://127.0.0.1:8000/token/",
+        {
+          username: username,
+          password: password
+        }
+      );
+
+      localStorage.setItem("access", response.data.access);
+      localStorage.setItem("refresh", response.data.refresh);
+
+      if (role === "ADMIN") {
+        router.push("/admin");
+      } else if (role === "SELLER") {
+        router.push("/seller");
+      } else {
+        router.push("/buyer");
+      }
+
+    } catch (error) {
+      alert("Invalid username or password");
+    }
+  };
+
   return (
-    <div>
-      <Typography gutterBottom variant="h4">
-        Buyer Dashboard
-      </Typography>
+    <Box sx={{ display: "flex", justifyContent: "center", mt: 8 }}>
+      <Card sx={{ width: 400 }}>
+        <CardContent>
+          <Typography variant="h5" align="center" gutterBottom>
+            Login
+          </Typography>
 
-      <Typography gutterBottom variant="body1">
-        Welcome to the Forward E-Auction System
-      </Typography>
+          <FormControl>
+            <FormLabel>Select Role</FormLabel>
 
-      <Grid container spacing={3}>
+            <RadioGroup
+              row
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+            >
+              <FormControlLabel
+                value="ADMIN"
+                control={<Radio />}
+                label="Admin"
+              />
 
-        <Card sx={{ maxWidth: 400 }}>
-          <CardContent>
-            <Typography gutterBottom variant="h5">
-              Available Auctions
-            </Typography>
+              <FormControlLabel
+                value="SELLER"
+                control={<Radio />}
+                label="Seller"
+              />
 
-            <Typography variant="body2">
-              View available auctions and participate in bidding.
-            </Typography>
-          </CardContent>
+              <FormControlLabel
+                value="BUYER"
+                control={<Radio />}
+                label="Buyer"
+              />
+            </RadioGroup>
+          </FormControl>
 
-          <CardActions>
-            <Button onClick={() => router.push("/buyer/auctions")}>
-              View Auctions
-            </Button>
-          </CardActions>
-        </Card>
+          <TextField
+            fullWidth
+            label="Username"
+            margin="normal"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+          />
 
-        <Card sx={{ maxWidth: 400 }}>
-          <CardContent>
-            <Typography gutterBottom variant="h5">
-              My Bids
-            </Typography>
+          <TextField
+            fullWidth
+            label="Password"
+            type="password"
+            margin="normal"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </CardContent>
 
-            <Typography variant="body2">
-              View your placed bids and bidding status.
-            </Typography>
-          </CardContent>
+        <CardActions sx={{ display: "block", px: 2, pb: 2 }}>
+          <Button
+            fullWidth
+            variant="contained"
+            onClick={handleLogin}
+          >
+            Login
+          </Button>
 
-          <CardActions>
-            <Button onClick={() => router.push("/buyer/mybids")}>
-              View My Bids
-            </Button>
-          </CardActions>
-        </Card>
-
-      </Grid>
-    </div>
+          <Button
+            fullWidth
+            sx={{ mt: 1 }}
+            onClick={() => router.push("/register")}
+          >
+            Register Here
+          </Button>
+        </CardActions>
+      </Card>
+    </Box>
   );
 }

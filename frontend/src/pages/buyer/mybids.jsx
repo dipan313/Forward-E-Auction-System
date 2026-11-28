@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from "react";
+
 import {
   Paper,
   Typography,
@@ -22,34 +23,36 @@ export default function MyBids() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
 
-  const fetchMyBids = () => {
-    axios
-      .get("http://127.0.0.1:8000/mybid/", {
-        headers: {
-          Authorization: "Bearer " + localStorage.getItem("access")
-        }
-      })
-      .then((response) => {
-        setBids(response.data);
-        setLoading(false);
-      })
-      .catch(() => {
-        setError("Unable to fetch your bids");
-        setLoading(false);
-      });
-  };
-
   useEffect(() => {
+    const fetchMyBids = async () => {
+      try {
+        const response = await axios.get(
+          "http://127.0.0.1:8000/bids/my/",
+          {
+            headers: {
+              Authorization: "Bearer " + localStorage.getItem("access")
+            }
+          }
+        );
+
+        setBids(response.data);
+      } catch (error) {
+        setError("Unable to fetch your bids");
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchMyBids();
   }, []);
 
   return (
     <div>
-      <Typography gutterBottom variant="h4">
+      <Typography variant="h4" gutterBottom>
         My Bids
       </Typography>
 
-      <Typography gutterBottom variant="body1">
+      <Typography variant="body1" gutterBottom>
         View your previously placed bids.
       </Typography>
 
@@ -58,7 +61,7 @@ export default function MyBids() {
           <TableHead>
             <TableRow>
               <TableCell>Bid ID</TableCell>
-              <TableCell>Auction Lot</TableCell>
+              <TableCell>Auction Lot ID</TableCell>
               <TableCell>Bid Amount</TableCell>
               <TableCell>Bid Time</TableCell>
               <TableCell>Action</TableCell>
@@ -88,14 +91,8 @@ export default function MyBids() {
               bids.map((bid) => (
                 <TableRow key={bid.id}>
                   <TableCell>{bid.id}</TableCell>
-
-                  <TableCell>
-                    {bid.lot_title || bid.auction_lot}
-                  </TableCell>
-
-                  <TableCell>
-                    ₹{bid.bid_amount}
-                  </TableCell>
+                  <TableCell>{bid.auction_lot}</TableCell>
+                  <TableCell>₹{bid.bid_amount}</TableCell>
 
                   <TableCell>
                     {new Date(bid.bid_time).toLocaleString()}

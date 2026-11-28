@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from "react";
+
 import {
   Card,
   CardContent,
@@ -22,62 +23,64 @@ export default function LotDetails() {
   const [bidAmount, setBidAmount] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  const fetchLot = () => {
-    axios
-      .get("http://127.0.0.1:8000/auctionlot/", {
-        headers: {
-          Authorization: "Bearer " + localStorage.getItem("access")
-        }
-      })
-      .then((response) => {
-        const selectedLot = response.data.find(
-          (lot) => String(lot.id) === String(id)
-        );
-
-        if (selectedLot) {
-          setLot(selectedLot);
-          fetchAuction(selectedLot.auction_event);
-        } else {
-          alert("Lot not found");
-        }
-      })
-      .catch(() => {
-        alert("Unable to fetch lot details");
-      });
+  const headers = {
+    Authorization: "Bearer " + (
+      typeof window !== "undefined"
+        ? localStorage.getItem("access")
+        : ""
+    )
   };
 
-  const fetchAuction = (auctionId) => {
-    axios
-      .get("http://127.0.0.1:8000/auctionevent/", {
-        headers: {
-          Authorization: "Bearer " + localStorage.getItem("access")
-        }
-      })
-      .then((response) => {
-        const selectedAuction = response.data.find(
-          (auction) => String(auction.id) === String(auctionId)
-        );
+  const fetchAuction = async (auctionId) => {
+    try {
+      const response = await axios.get(
+        "http://127.0.0.1:8000/event/",
+        { headers }
+      );
 
-        setAuction(selectedAuction || null);
-      })
-      .catch(() => {
-        alert("Unable to fetch auction status");
-      });
+      const selectedAuction = response.data.find(
+        (item) => String(item.id) === String(auctionId)
+      );
+
+      setAuction(selectedAuction || null);
+    } catch (error) {
+      setAuction(null);
+    }
   };
 
-  const fetchHighestBid = () => {
-    axios
-      .get("http://127.0.0.1:8000/highestbid/?lot_id=" + id, {
-        headers: {
-          Authorization: "Bearer " + localStorage.getItem("access")
-        }
-      })
-      .then((response) => {
-        setHighestBid(response.data.bid_amount ?? null);
-      })
-      .catch(() => {
-        setHighestBid(null);
-      });
+  const fetchLot = async () => {
+    try {
+      const response = await axios.get(
+        "http://127.0.0.1:8000/lots/",
+        { headers }
+      );
+
+      const selectedLot = response.data.find(
+        (item) => String(item.id) === String(id)
+      );
+
+      if (selectedLot) {
+        setLot(selectedLot);
+        fetchAuction(selectedLot.auction_event);
+      } else {
+        alert("Lot not found");
+      }
+    } catch (error) {
+      alert("Unable to fetch lot details");
+    }
+  };
+
+  const fetchHighestBid = async () => {
+    try {
+      const response = await axios.get(
+        "http://127.0.0.1:8000/bids/highest/?lot_id=" + id,
+        { headers }
+      );
+
+      setHighestBid(response.data.bid_amount ?? null);
+    } catch (error) {
+      setHighestBid(null);
+    }
   };
 
   useEffect(() => {
@@ -94,16 +97,12 @@ export default function LotDetails() {
 
     try {
       await axios.post(
-        "http://127.0.0.1:8000/placebid/",
+        "http://127.0.0.1:8000/bids/place/",
         {
           auction_lot: id,
           bid_amount: bidAmount
         },
-        {
-          headers: {
-            Authorization: "Bearer " + localStorage.getItem("access")
-          }
-        }
+        { headers }
       );
 
       alert("Bid placed successfully");
@@ -112,13 +111,12 @@ export default function LotDetails() {
 
       fetchHighestBid();
       fetchLot();
-
     } catch (error) {
       const data = error.response?.data;
 
       if (data?.minimum_bid) {
         alert(
-          data.message +
+          (data.message || "Bid is too low") +
           ". Minimum bid: ₹" +
           data.minimum_bid
         );
@@ -132,14 +130,14 @@ export default function LotDetails() {
 
   return (
     <div>
-      <Typography gutterBottom variant="h4">
+      <Typography variant="h4" gutterBottom>
         Lot Details / Live Bidding
       </Typography>
 
       {lot && (
         <Card sx={{ mb: 3 }}>
           <CardContent>
-            <Typography gutterBottom variant="h5">
+            <Typography variant="h5" gutterBottom>
               {lot.title}
             </Typography>
 
@@ -167,7 +165,7 @@ export default function LotDetails() {
               Highest Bid:{" "}
               {highestBid !== null
                 ? "₹" + highestBid
-                : "No bid amount available"}
+                : "No bids yet"}
             </Typography>
 
             <Typography gutterBottom>
@@ -181,7 +179,7 @@ export default function LotDetails() {
         <form onSubmit={placeBid}>
           <Card sx={{ maxWidth: 500 }}>
             <CardContent>
-              <Typography gutterBottom variant="h5">
+              <Typography variant="h5" gutterBottom>
                 Place Your Bid
               </Typography>
 
@@ -202,9 +200,14 @@ export default function LotDetails() {
               <Button
                 type="submit"
                 variant="contained"
-                disabled={auction?.status !== "LIVE" || submitting}
+                disabled={
+                  auction?.status !== "LIVE" ||
+                  submitting ||
+                  !bidAmount ||
+                  Number(bidAmount) <= 0
+                }
               >
-                Place Bid
+                {submitting ? "Placing Bid..." : "Place Bid"}
               </Button>
 
               <Button onClick={fetchHighestBid}>
@@ -221,7 +224,7 @@ export default function LotDetails() {
           sx={{ mt: 3 }}
           onClick={() =>
             router.push(
-              "/buyer/auctionsdetails?id=" + lot.auction_event
+              "/buyer/auctiondetails?id=" + lot.auction_event
             )
           }
         >
