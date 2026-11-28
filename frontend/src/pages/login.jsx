@@ -1,121 +1,68 @@
 
 import React from "react";
 import {
-  FormControl,
-  FormControlLabel,
-  FormLabel,
-  RadioGroup,
-  Radio,
-  TextField,
   Card,
   CardContent,
   Typography,
   CardActions,
-  Button
+  Button,
+  Grid
 } from "@mui/material";
 
-import axios from "axios";
 import { useRouter } from "next/router";
 
-export default function Login() {
+export default function Buyer() {
   const router = useRouter();
 
-  const log = async (e) => {
-    e.preventDefault();
-
-    const username = e.target.username.value;
-    const password = e.target.password.value;
-    const role = e.target.role.value;
-
-    if (!role) {
-      alert("Please select a role");
-      return;
-    }
-
-    try {
-      const response = await axios.post(
-        "http://127.0.0.1:8000/token/",
-        {
-          username: username,
-          password: password
-        }
-      );
-
-      localStorage.setItem("access", response.data.access);
-      localStorage.setItem("refresh", response.data.refresh);
-      localStorage.setItem("role", role);
-
-      if (role === "ADMIN") {
-        router.push("/admin");
-      } else if (role === "SELLER") {
-        router.push("/seller");
-      } else if (role === "BUYER") {
-        router.push("/buyer");
-      }
-
-    } catch (error) {
-      alert(error.response?.data?.detail || "Login failed");
-    }
-  };
-
   return (
-    <form onSubmit={log}>
-      <Card sx={{ maxWidth: 400 }}>
-        <CardContent>
-          <Typography gutterBottom variant="h5" component="div">
-            Forward E-Auction Login
-          </Typography>
+    <div>
+      <Typography gutterBottom variant="h4">
+        Buyer Dashboard
+      </Typography>
 
-          <FormControl>
-            <FormLabel>Login As</FormLabel>
+      <Typography gutterBottom variant="body1">
+        Welcome to the Forward E-Auction System
+      </Typography>
 
-            <RadioGroup row name="role">
-              <FormControlLabel
-                value="ADMIN"
-                control={<Radio />}
-                label="Admin"
-              />
+      <Grid container spacing={3}>
 
-              <FormControlLabel
-                value="SELLER"
-                control={<Radio />}
-                label="Seller"
-              />
+        <Card sx={{ maxWidth: 400 }}>
+          <CardContent>
+            <Typography gutterBottom variant="h5">
+              Available Auctions
+            </Typography>
 
-              <FormControlLabel
-                value="BUYER"
-                control={<Radio />}
-                label="Buyer"
-              />
-            </RadioGroup>
-          </FormControl>
+            <Typography variant="body2">
+              View available auctions and participate in bidding.
+            </Typography>
+          </CardContent>
 
-          <TextField
-            label="Username"
-            name="username"
-            fullWidth
-            margin="normal"
-            required
-          />
+          <CardActions>
+            <Button onClick={() => router.push("/buyer/auctions")}>
+              View Auctions
+            </Button>
+          </CardActions>
+        </Card>
 
-          <TextField
-            label="Password"
-            name="password"
-            type="password"
-            fullWidth
-            margin="normal"
-            required
-          />
-        </CardContent>
+        <Card sx={{ maxWidth: 400 }}>
+          <CardContent>
+            <Typography gutterBottom variant="h5">
+              My Bids
+            </Typography>
 
-        <CardActions>
-          <Button type="submit">Login</Button>
+            <Typography variant="body2">
+              View your placed bids and bidding status.
+            </Typography>
+          </CardContent>
 
-          <Button onClick={() => router.push("/register")}>
-            Register Here
-          </Button>
-        </CardActions>
-      </Card>
-    </form>
+          <CardActions>
+            <Button onClick={() => router.push("/buyer/mybids")}>
+              View My Bids
+            </Button>
+          </CardActions>
+        </Card>
+
+      </Grid>
+    </div>
   );
 }
