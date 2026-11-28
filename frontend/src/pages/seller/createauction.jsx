@@ -3,11 +3,13 @@ import React from "react";
 import axios from "axios";
 
 import {
+  Box,
   Card,
   CardContent,
   Typography,
   TextField,
-  Button
+  Button,
+  Container
 } from "@mui/material";
 
 import { useRouter } from "next/router";
@@ -22,6 +24,7 @@ export default function CreateAuction() {
 
     if (!token) {
       alert("Please login first");
+      router.push("/login");
       return;
     }
 
@@ -29,6 +32,11 @@ export default function CreateAuction() {
     const description = e.target.description.value;
     const start_time = e.target.start_time.value;
     const end_time = e.target.end_time.value;
+
+    if (new Date(end_time) <= new Date(start_time)) {
+      alert("End time must be after start time");
+      return;
+    }
 
     try {
       const response = await axios.post(
@@ -64,71 +72,126 @@ export default function CreateAuction() {
   };
 
   return (
-    <form onSubmit={create}>
+    <Container maxWidth="md" sx={{ py: 5 }}>
 
-      <Card sx={{ maxWidth: 500, m: "30px auto" }}>
+      <Button
+        onClick={() => router.push("/seller")}
+        sx={{ mb: 3 }}
+      >
+        Back to Dashboard
+      </Button>
 
-        <CardContent>
+      <Card
+        sx={{
+          borderRadius: 3,
+          boxShadow: 3
+        }}
+      >
 
-          <Typography variant="h5" gutterBottom>
-            Create Auction
-          </Typography>
+        <CardContent sx={{ p: { xs: 3, md: 5 } }}>
 
-          <TextField
-            label="Title"
-            name="title"
-            fullWidth
-            margin="normal"
-            required
-          />
+          <Box sx={{ textAlign: "center", mb: 4 }}>
 
-          <TextField
-            label="Description"
-            name="description"
-            fullWidth
-            multiline
-            rows={3}
-            margin="normal"
-            required
-          />
+            <Typography variant="h4" fontWeight="bold">
+              Create New Auction
+            </Typography>
 
-          <TextField
-            label="Start Time"
-            name="start_time"
-            type="datetime-local"
-            fullWidth
-            margin="normal"
-            required
-            slotProps={{
-              inputLabel: { shrink: true }
-            }}
-          />
+            <Typography color="text.secondary" sx={{ mt: 1 }}>
+              Enter the auction details to create your auction event.
+            </Typography>
 
-          <TextField
-            label="End Time"
-            name="end_time"
-            type="datetime-local"
-            fullWidth
-            margin="normal"
-            required
-            slotProps={{
-              inputLabel: { shrink: true }
-            }}
-          />
+          </Box>
 
-          <Button
-            type="submit"
-            variant="contained"
-            fullWidth
-            sx={{ mt: 2 }}
-          >
-            Create Auction
-          </Button>
+          <Box component="form" onSubmit={create}>
+
+            <Typography fontWeight="bold" sx={{ mb: 1 }}>
+              Auction Title
+            </Typography>
+
+            <TextField
+              name="title"
+              placeholder="Enter auction title"
+              fullWidth
+              required
+              margin="normal"
+            />
+
+            <Typography fontWeight="bold" sx={{ mt: 2, mb: 1 }}>
+              Description
+            </Typography>
+
+            <TextField
+              name="description"
+              placeholder="Describe your auction"
+              fullWidth
+              multiline
+              rows={4}
+              required
+              margin="normal"
+            />
+
+            <Typography fontWeight="bold" sx={{ mt: 2, mb: 1 }}>
+              Auction Schedule
+            </Typography>
+
+            <TextField
+              label="Start Time"
+              name="start_time"
+              type="datetime-local"
+              fullWidth
+              required
+              margin="normal"
+              slotProps={{
+                inputLabel: { shrink: true }
+              }}
+            />
+
+            <TextField
+              label="End Time"
+              name="end_time"
+              type="datetime-local"
+              fullWidth
+              required
+              margin="normal"
+              slotProps={{
+                inputLabel: { shrink: true }
+              }}
+            />
+
+            <Box
+              sx={{
+                mt: 3,
+                p: 2,
+                bgcolor: "action.hover",
+                borderRadius: 2
+              }}
+            >
+              <Typography variant="body2" color="text.secondary">
+                Note: Your auction will be submitted for admin approval.
+                You can add auction lots from the Manage Auction page.
+              </Typography>
+            </Box>
+
+            <Button
+              type="submit"
+              variant="contained"
+              fullWidth
+              size="large"
+              sx={{
+                mt: 3,
+                py: 1.5,
+                borderRadius: 2
+              }}
+            >
+              Create Auction
+            </Button>
+
+          </Box>
 
         </CardContent>
 
       </Card>
 
-    </form>
+    </Container>
   );
 }
