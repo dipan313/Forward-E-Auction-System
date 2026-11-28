@@ -21,7 +21,7 @@ export default function GeneralLayout({ children }) {
             Forward E-Auction
           </Typography>
 
-          <Button color="inherit" onClick={() => router.push("/")}>
+          <Button color="inherit" onClick={() => router.push("/home")}>
             Home
           </Button>
 
