@@ -1,3 +1,5 @@
+
+import React from "react";
 import {
   FormControl,
   FormControlLabel,
@@ -14,14 +16,11 @@ import {
 
 import axios from "axios";
 import { useRouter } from "next/router";
-import React from "react";
 
 export default function Login() {
-
   const router = useRouter();
 
-  const log = (e) => {
-
+  const log = async (e) => {
     e.preventDefault();
 
     const username = e.target.username.value;
@@ -33,131 +32,90 @@ export default function Login() {
       return;
     }
 
-    axios
-      .post("http://127.0.0.1:8000/token/", {
-        username: username,
-        password: password
-      })
-
-      .then((response) => {
-
-        const actualRole = response.data.is_staff
-          ? "ADMIN"
-          : response.data.role;
-
-        if (actualRole !== role) {
-          alert("Please select the correct role");
-          return;
+    try {
+      const response = await axios.post(
+        "http://127.0.0.1:8000/token/",
+        {
+          username: username,
+          password: password
         }
+      );
 
-        localStorage.setItem("access", response.data.access);
-        localStorage.setItem("refresh", response.data.refresh);
-        localStorage.setItem("role", actualRole);
+      localStorage.setItem("access", response.data.access);
+      localStorage.setItem("refresh", response.data.refresh);
+      localStorage.setItem("role", role);
 
-        if (actualRole === "ADMIN") {
-          router.push("/admin");
-        }
+      if (role === "ADMIN") {
+        router.push("/admin");
+      } else if (role === "SELLER") {
+        router.push("/seller");
+      } else if (role === "BUYER") {
+        router.push("/buyer");
+      }
 
-        else if (actualRole === "SELLER") {
-          router.push("/seller");
-        }
-
-        else if (actualRole === "BUYER") {
-          router.push("/buyer");
-        }
-
-      })
-
-      .catch((error) => {
-        console.log(error);
-        alert(error.response?.data?.detail || "Login failed");
-      });
+    } catch (error) {
+      alert(error.response?.data?.detail || "Login failed");
+    }
   };
 
   return (
+    <form onSubmit={log}>
+      <Card sx={{ maxWidth: 400 }}>
+        <CardContent>
+          <Typography gutterBottom variant="h5" component="div">
+            Forward E-Auction Login
+          </Typography>
 
-    <div>
+          <FormControl>
+            <FormLabel>Login As</FormLabel>
 
-      <form onSubmit={log}>
+            <RadioGroup row name="role">
+              <FormControlLabel
+                value="ADMIN"
+                control={<Radio />}
+                label="Admin"
+              />
 
-        <Card sx={{ maxWidth: 400 }}>
+              <FormControlLabel
+                value="SELLER"
+                control={<Radio />}
+                label="Seller"
+              />
 
-          <CardContent>
+              <FormControlLabel
+                value="BUYER"
+                control={<Radio />}
+                label="Buyer"
+              />
+            </RadioGroup>
+          </FormControl>
 
-            <Typography gutterBottom variant="h5" component="div">
-              Forward E-Auction Login
-            </Typography>
+          <TextField
+            label="Username"
+            name="username"
+            fullWidth
+            margin="normal"
+            required
+          />
 
-            <FormControl>
+          <TextField
+            label="Password"
+            name="password"
+            type="password"
+            fullWidth
+            margin="normal"
+            required
+          />
+        </CardContent>
 
-              <FormLabel>Login As</FormLabel>
+        <CardActions>
+          <Button type="submit">Login</Button>
 
-              <RadioGroup row name="role">
-
-                <FormControlLabel
-                  value="ADMIN"
-                  control={<Radio />}
-                  label="Admin"
-                />
-
-                <FormControlLabel
-                  value="SELLER"
-                  control={<Radio />}
-                  label="Seller"
-                />
-
-                <FormControlLabel
-                  value="BUYER"
-                  control={<Radio />}
-                  label="Buyer"
-                />
-
-              </RadioGroup>
-
-            </FormControl>
-
-            <TextField
-              id="username"
-              label="Username"
-              variant="outlined"
-              name="username"
-              fullWidth
-              margin="normal"
-              required
-            />
-
-            <TextField
-              id="password"
-              label="Password"
-              variant="outlined"
-              name="password"
-              type="password"
-              fullWidth
-              margin="normal"
-              required
-            />
-
-          </CardContent>
-
-          <CardActions>
-
-            <Button size="small" type="submit">
-              Submit
-            </Button>
-
-            <Button
-              size="small"
-              onClick={() => router.push("/register")}
-            >
-              Register Here
-            </Button>
-
-          </CardActions>
-
-        </Card>
-
-      </form>
-
-    </div>
+          <Button onClick={() => router.push("/register")}>
+            Register Here
+          </Button>
+        </CardActions>
+      </Card>
+    </form>
   );
 }
