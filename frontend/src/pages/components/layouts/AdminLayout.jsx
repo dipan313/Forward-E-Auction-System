@@ -20,7 +20,6 @@ export default function AdminLayout({ children }) {
 
   return (
     <>
-      {/* Header */}
       <AppBar position="static">
         <Toolbar>
           <Typography variant="h6" sx={{ flexGrow: 1 }}>
@@ -31,12 +30,25 @@ export default function AdminLayout({ children }) {
             Dashboard
           </Button>
 
-          <Button color="inherit" onClick={() => router.push("/admin/auctions")}>
+          <Button
+            color="inherit"
+            onClick={() => router.push("/admin/auctions")}
+          >
             Manage Auctions
           </Button>
 
-          <Button color="inherit" onClick={() => router.push("/admin/users")}>
+          <Button
+            color="inherit"
+            onClick={() => router.push("/admin/user")}
+          >
             Users
+          </Button>
+
+          <Button
+            color="inherit"
+            onClick={() => router.push("/admin/results")}
+          >
+            Results
           </Button>
 
           <Button color="inherit" onClick={logout}>
@@ -45,12 +57,10 @@ export default function AdminLayout({ children }) {
         </Toolbar>
       </AppBar>
 
-      {/* Main Content */}
       <Box sx={{ minHeight: "75vh", p: 3 }}>
         {children}
       </Box>
 
-      {/* Footer */}
       <Box
         component="footer"
         sx={{

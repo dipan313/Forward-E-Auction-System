@@ -14,14 +14,13 @@ export default function GeneralLayout({ children }) {
 
   return (
     <>
-      {/* Header */}
       <AppBar position="static">
         <Toolbar>
           <Typography variant="h6" sx={{ flexGrow: 1 }}>
             Forward E-Auction
           </Typography>
 
-          <Button color="inherit" onClick={() => router.push("/home")}>
+          <Button color="inherit" onClick={() => router.push("/")}>
             Home
           </Button>
 
@@ -35,12 +34,10 @@ export default function GeneralLayout({ children }) {
         </Toolbar>
       </AppBar>
 
-      {/* Main Content */}
       <Box sx={{ minHeight: "75vh", p: 3 }}>
         {children}
       </Box>
 
-      {/* Footer */}
       <Box
         component="footer"
         sx={{

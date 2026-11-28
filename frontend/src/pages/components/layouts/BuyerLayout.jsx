@@ -20,7 +20,6 @@ export default function BuyerLayout({ children }) {
 
   return (
     <>
-      {/* Header */}
       <AppBar position="static">
         <Toolbar>
           <Typography variant="h6" sx={{ flexGrow: 1 }}>
@@ -31,12 +30,25 @@ export default function BuyerLayout({ children }) {
             Dashboard
           </Button>
 
-          <Button color="inherit" onClick={() => router.push("/buyer/auctions")}>
+          <Button
+            color="inherit"
+            onClick={() => router.push("/buyer/auctions")}
+          >
             Auctions
           </Button>
 
-          <Button color="inherit" onClick={() => router.push("/buyer/mybids")}>
+          <Button
+            color="inherit"
+            onClick={() => router.push("/buyer/mybids")}
+          >
             My Bids
+          </Button>
+
+          <Button
+            color="inherit"
+            onClick={() => router.push("/buyer/results")}
+          >
+            Results
           </Button>
 
           <Button color="inherit" onClick={logout}>
@@ -45,12 +57,10 @@ export default function BuyerLayout({ children }) {
         </Toolbar>
       </AppBar>
 
-      {/* Main Content */}
       <Box sx={{ minHeight: "75vh", p: 3 }}>
         {children}
       </Box>
 
-      {/* Footer */}
       <Box
         component="footer"
         sx={{
