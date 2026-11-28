@@ -363,3 +363,22 @@ def my_bid(request):
     ).order_by("-bid_time")
 
     return Response(BidSerializer(bids, many=True).data)
+
+
+# 13. LIST ALL USERS (ADMIN)
+@api_view(["GET"])
+@permission_classes([IsAdminUser])
+def list_users(request):
+
+    users = User.objects.filter(
+        role__in=["BUYER", "SELLER"],
+        is_staff=False
+    ).values(
+        "id",
+        "username",
+        "email",
+        "mobile",
+        "role"
+    )
+
+    return Response(list(users))
